@@ -2,85 +2,102 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <title>Buscador de Socios - MECA</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #e6f2e6;
-            text-align: center;
-            padding: 30px;
-        }
-        input[type="text"] {
-            padding: 10px;
-            width: 250px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-        }
-        button {
-            padding: 10px 20px;
-            background-color: #2e8b57;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-        button:hover {
-            background-color: #246b45;
-        }
-        #resultado {
-            margin-top: 30px;
-            background-color: white;
-            padding: 20px;
-            border-radius: 10px;
-            display: inline-block;
-            text-align: left;
-        }
-        a.boton {
-            display: inline-block;
-            margin-top: 20px;
-            padding: 10px 20px;
-            background-color: #2e8b57;
-            color: white;
-            text-decoration: none;
-            border-radius: 5px;
-        }
-        a.boton:hover {
-            background-color: #246b45;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Movimiento Estudiantil para el Cambio</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #e6f0e6;
+      text-align: center;
+      margin: 0;
+      padding: 0;
+    }
+    header img {
+      max-width: 100px;
+      margin-top: 20px;
+    }
+    h1 {
+      color: #003300;
+      margin-top: 10px;
+    }
+    h2 {
+      color: #003300;
+    }
+    input[type="text"] {
+      padding: 10px;
+      margin: 20px 10px;
+      width: 220px;
+    }
+    button {
+      padding: 10px 15px;
+      background-color: #2e7d32;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    #resultado {
+      margin: 20px auto;
+      padding: 15px;
+      background: white;
+      max-width: 500px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    .afiliacion {
+      margin-top: 30px;
+    }
+    .afiliacion p {
+      margin-bottom: 10px;
+      font-weight: bold;
+    }
+  </style>
 </head>
 <body>
+  <header>
+    <img src="logo-meca.png" alt="Logo MECA" />
     <h1>Movimiento Estudiantil para el Cambio</h1>
-    <h2>Buscador de Socios</h2>
-    <input type="text" id="cedula" placeholder="Ingresa tu número de cédula">
-    <button onclick="buscar()">Buscar</button>
-    <div id="resultado"></div>
-    <a class="boton" href="https://docs.google.com/forms/d/e/1FAIpQLSdGiR5raOsXQG7V8LocuxWs1INq6IusR99dPkgoBtg0c1RWSQ/viewform" target="_blank">Afiliarse al Movimiento</a>
-
-    <script>
-        async function buscar() {
-            const cedula = document.getElementById("cedula").value.trim();
-            const url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSUfrZdXFUkpInOVBmTOXcdaeEL_rFDY_sMmvM6e3qIurGhM_Evw4ldXyULThr4L_GB5EwR9Vy-Wly_/pub?gid=0&single=true&output=csv";
-
-            const response = await fetch(url);
-            const data = await response.text();
-            const rows = data.split("\n").map(row => row.split(","));
-
-            const headers = rows[0];
-            const match = rows.find(row => row[0] === cedula);
-
-            const resultadoDiv = document.getElementById("resultado");
-            resultadoDiv.innerHTML = "";
-
-            if (match) {
-                resultadoDiv.innerHTML = "<h3>Datos del socio:</h3><ul>" +
-                    match.map((val, i) => `<li><strong>${headers[i]}:</strong> ${val}</li>`).join("") +
-                    "</ul>";
-            } else {
-                resultadoDiv.innerHTML = "<p>No se encontró ningún socio con esa cédula.</p>";
+  </header>
+  <h2>Buscador de Socios</h2>
+  <input type="text" id="cedula" placeholder="Ingresa tu número de cédula"/>
+  <button onclick="buscarSocio()">Buscar</button>
+  <div id="resultado"></div>
+  <div class="afiliacion">
+    <p>¿Aún no estás afiliado? ¿Querés formar parte del MECA?</p>
+    <a href="https://docs.google.com/forms/d/e/1FAIpQLSdGiR5raOsXQG7V8LocuxWs1INq6IusR99dPkgoBtg0c1RWSQ/viewform?usp=dialog" target="_blank">
+      <button>Afiliarse al Movimiento</button>
+    </a>
+  </div>
+  <script>
+    async function buscarSocio() {
+      const cedula = document.getElementById("cedula").value.trim();
+      const resultadoDiv = document.getElementById("resultado");
+      resultadoDiv.innerHTML = "Buscando...";
+      try {
+        const res = await fetch("https://docs.google.com/spreadsheets/d/e/2PACX-1vSUfrZdXFUkpInOVBmTOXcdaeEL_rFDY_sMmvM6e3qIurGhM_Evw4ldXyULThr4L_GB5EwR9Vy-Wly_/pub?gid=0&single=true&output=csv");
+        const data = await res.text();
+        const lines = data.split("\n");
+        const headers = lines[0].split(",");
+        let found = false;
+        for (let i = 1; i < lines.length; i++) {
+          const row = lines[i].split(",");
+          if (row[0] === cedula) {
+            let html = "<h3>Datos del Socio</h3><ul>";
+            for (let j = 0; j < headers.length; j++) {
+              html += `<li><strong>${headers[j]}:</strong> ${row[j]}</li>`;
             }
+            html += "</ul>";
+            resultadoDiv.innerHTML = html;
+            found = true;
+            break;
+          }
         }
-    </script>
+        if (!found) resultadoDiv.innerHTML = "No se encontró ningún socio con ese número de cédula.";
+      } catch (err) {
+        resultadoDiv.innerHTML = "Error al buscar datos.";
+      }
+    }
+  </script>
 </body>
 </html>
