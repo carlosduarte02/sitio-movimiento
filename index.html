@@ -2,127 +2,85 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Movimiento Estudiantil</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 0;
-      background-color: #f4fdf7;
-      color: #003b1f;
-    }
-    header {
-      background-color: #2e7d32;
-      color: white;
-      padding: 1rem;
-      text-align: center;
-    }
-    main {
-      padding: 2rem;
-      max-width: 600px;
-      margin: auto;
-    }
-    h1 {
-      margin-top: 0;
-    }
-    input[type="text"] {
-      width: 100%;
-      padding: 0.75rem;
-      font-size: 1rem;
-      margin-top: 0.5rem;
-      margin-bottom: 1rem;
-      border: 1px solid #ccc;
-      border-radius: 5px;
-    }
-    button {
-      background-color: #388e3c;
-      color: white;
-      padding: 0.75rem 1.5rem;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      font-size: 1rem;
-    }
-    button:hover {
-      background-color: #2e7d32;
-    }
-    .result {
-      background: #e0f2f1;
-      padding: 1rem;
-      border-radius: 5px;
-      margin-top: 1rem;
-    }
-    .afiliacion {
-      text-align: center;
-      margin-top: 2rem;
-    }
-    .afiliacion a {
-      display: inline-block;
-      background-color: #1b5e20;
-      color: white;
-      padding: 0.75rem 1.5rem;
-      text-decoration: none;
-      border-radius: 5px;
-    }
-    .afiliacion a:hover {
-      background-color: #2e7d32;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <title>Buscador de Socios - MECA</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #e6f2e6;
+            text-align: center;
+            padding: 30px;
+        }
+        input[type="text"] {
+            padding: 10px;
+            width: 250px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #2e8b57;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #246b45;
+        }
+        #resultado {
+            margin-top: 30px;
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            display: inline-block;
+            text-align: left;
+        }
+        a.boton {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #2e8b57;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+        a.boton:hover {
+            background-color: #246b45;
+        }
+    </style>
 </head>
 <body>
-  <header>
-    <h1>Movimiento Estudiantil</h1>
-    <p>Consulta tu afiliación</p>
-  </header>
-  <main>
-    <label for="cedula">Número de cédula:</label>
-    <input type="text" id="cedula" placeholder="Ej: 12345678">
-    <button onclick="buscarSocio()">Buscar</button>
+    <h1>Movimiento Estudiantil para el Cambio</h1>
+    <h2>Buscador de Socios</h2>
+    <input type="text" id="cedula" placeholder="Ingresa tu número de cédula">
+    <button onclick="buscar()">Buscar</button>
+    <div id="resultado"></div>
+    <a class="boton" href="https://docs.google.com/forms/d/e/1FAIpQLSdGiR5raOsXQG7V8LocuxWs1INq6IusR99dPkgoBtg0c1RWSQ/viewform" target="_blank">Afiliarse al Movimiento</a>
 
-    <div id="resultado" class="result" style="display: none;"></div>
+    <script>
+        async function buscar() {
+            const cedula = document.getElementById("cedula").value.trim();
+            const url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSUfrZdXFUkpInOVBmTOXcdaeEL_rFDY_sMmvM6e3qIurGhM_Evw4ldXyULThr4L_GB5EwR9Vy-Wly_/pub?gid=0&single=true&output=csv";
 
-    <div class="afiliacion">
-      <p>¿Todavía no sos parte? ¡Afiliate ahora!</p>
-      <a href="https://docs.google.com/forms/d/e/1FAIpQLSdGiR5raOsXQG7V8LocuxWs1INq6IusR99dPkgoBtg0c1RWSQ/viewform?usp=dialog" target="_blank">Afiliarme</a>
-    </div>
-  </main>
+            const response = await fetch(url);
+            const data = await response.text();
+            const rows = data.split("\n").map(row => row.split(","));
 
-  <script>
-    const URL_PLANILLA = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSUfrZdXFUkpInOVBmTOXcdaeEL_rFDY_sMmvM6e3qIurGhM_Evw4ldXyULThr4L_GB5EwR9Vy-Wly_/pub?output=tsv";
+            const headers = rows[0];
+            const match = rows.find(row => row[0] === cedula);
 
-    let socios = [];
+            const resultadoDiv = document.getElementById("resultado");
+            resultadoDiv.innerHTML = "";
 
-    fetch(URL_PLANILLA)
-      .then(res => res.text())
-      .then(text => {
-        const lines = text.split('\n');
-        const headers = lines[0].split('\t');
-        socios = lines.slice(1).map(row => {
-          const values = row.split('\t');
-          return {
-            cedula: values[0],
-            id: values[1]
-          };
-        });
-      });
-
-    function buscarSocio() {
-      const cedula = document.getElementById("cedula").value.trim();
-      const socio = socios.find(s => s.cedula == cedula);
-      const resultado = document.getElementById("resultado");
-
-      if (socio) {
-        resultado.innerHTML = `
-          <strong>Datos encontrados:</strong><br>
-          <b>Cédula:</b> ${socio.cedula}<br>
-          <b>ID:</b> ${socio.id}
-        `;
-      } else {
-        resultado.innerHTML = "No se encontraron datos para esa cédula.";
-      }
-      resultado.style.display = "block";
-    }
-  </script>
+            if (match) {
+                resultadoDiv.innerHTML = "<h3>Datos del socio:</h3><ul>" +
+                    match.map((val, i) => `<li><strong>${headers[i]}:</strong> ${val}</li>`).join("") +
+                    "</ul>";
+            } else {
+                resultadoDiv.innerHTML = "<p>No se encontró ningún socio con esa cédula.</p>";
+            }
+        }
+    </script>
 </body>
 </html>
